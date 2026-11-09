@@ -1,0 +1,101 @@
+{
+  "entities": {
+    "products": {
+      "title": "Products Catalog",
+      "description": "Premium solid perfume products by SCENT ONE",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "maxLength": 100 },
+        "slug": { "type": "string", "maxLength": 50 },
+        "identity": { "type": "string", "maxLength": 100 },
+        "subtitle": { "type": "string", "maxLength": 200 },
+        "tagline": { "type": "string", "maxLength": 200 },
+        "category": { "type": "string", "enum": ["Men", "Women", "Unisex"] },
+        "price": { "type": "number", "minimum": 100, "maximum": 50000 },
+        "isSamplePrice": { "type": "boolean" },
+        "weightGrams": { "type": "number", "minimum": 5, "maximum": 500 },
+        "stock": { "type": "integer", "minimum": 0, "maximum": 10000 },
+        "isFeatured": { "type": "boolean" },
+        "isActive": { "type": "boolean" },
+        "shortDescription": { "type": "string", "maxLength": 500 },
+        "longDescription": { "type": "string", "maxLength": 3000 },
+        "fragranceMood": { "type": "string", "enum": ["midnight", "ocean", "sky", "romantic"] }
+      },
+      "required": ["name", "slug", "price", "stock", "category", "isActive"]
+    },
+    "orders": {
+      "title": "Customer Orders",
+      "description": "Authoritative order documents created during checkout",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "orderReference": { "type": "string", "maxLength": 30 },
+        "createdAt": { "type": "string" },
+        "customer": {
+          "type": "object",
+          "properties": {
+            "fullName": { "type": "string", "minLength": 2, "maxLength": 100 },
+            "mobile": { "type": "string", "pattern": "^[0-9]{10}$" },
+            "address": { "type": "string", "minLength": 8, "maxLength": 300 },
+            "city": { "type": "string", "maxLength": 80 },
+            "state": { "type": "string", "maxLength": 80 },
+            "pincode": { "type": "string", "pattern": "^[0-9]{6}$" },
+            "email": { "type": "string", "maxLength": 120 },
+            "landmark": { "type": "string", "maxLength": 150 },
+            "deliveryInstructions": { "type": "string", "maxLength": 250 }
+          },
+          "required": ["fullName", "mobile", "address", "city", "state", "pincode"]
+        },
+        "items": { "type": "array" },
+        "subtotal": { "type": "number", "minimum": 0 },
+        "deliveryCharges": { "type": "number", "minimum": 0 },
+        "total": { "type": "number", "minimum": 0 },
+        "status": {
+          "type": "string",
+          "enum": ["Pending", "Confirmed", "Dispatched", "Delivered", "Cancelled"]
+        },
+        "source": { "type": "string", "enum": ["WhatsApp", "Web"] }
+      },
+      "required": ["orderReference", "customer", "items", "subtotal", "total", "status"]
+    },
+    "storeSettings": {
+      "title": "Store Settings",
+      "description": "Public brand details, delivery fee thresholds, and WhatsApp configuration",
+      "type": "object",
+      "properties": {
+        "brandName": { "type": "string" },
+        "whatsappNumber": { "type": "string" },
+        "deliveryCharge": { "type": "number" },
+        "freeDeliveryThreshold": { "type": "number" }
+      },
+      "required": ["brandName", "whatsappNumber", "deliveryCharge"]
+    },
+    "admins": {
+      "title": "Admin Role Directory",
+      "description": "Trusted administrative accounts with verified permissions",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["owner", "admin"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["email", "role"]
+    },
+    "reviews": {
+      "title": "Customer Reviews",
+      "description": "Public customer feedback and ratings",
+      "type": "object",
+      "properties": {
+        "customerName": { "type": "string", "maxLength": 80 },
+        "city": { "type": "string", "maxLength": 60 },
+        "fragrancePurchased": { "type": "string" },
+        "rating": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "reviewText": { "type": "string", "maxLength": 1000 },
+        "date": { "type": "string" },
+        "isDemo": { "type": "boolean" }
+      },
+      "required": ["customerName", "rating", "reviewText"]
+    }
+  }
+}

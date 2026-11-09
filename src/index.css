@@ -1,0 +1,59 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-serif: "Cormorant Garamond", Georgia, serif;
+  --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --color-obsidian: #090A0F;
+  --color-charcoal: #171923;
+  --color-gold: #D8B66B;
+  --color-ivory: #F8F3EA;
+  --color-silver: #C8CBD2;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    font-family: var(--font-sans);
+  }
+
+  body {
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+}
+
+/* Custom scrollbar for luxury feel */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(216, 182, 107, 0.25);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(216, 182, 107, 0.45);
+}
+
+/* Luxury Diwali Royal Jaali Latticework & Gold Foil Texture */
+.diwali-jaali-pattern {
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23D8B66B' stroke-width='0.75'%3E%3Cpath d='M30 0L60 30L30 60L0 30Z'/%3E%3Ccircle cx='30' cy='30' r='10'/%3E%3Cpath d='M30 8C34 18 42 26 52 30C42 34 34 42 30 52C26 42 18 34 8 30C18 26 26 18 30 8Z'/%3E%3Ccircle cx='30' cy='30' r='2' fill='%23D8B66B'/%3E%3Ccircle cx='0' cy='0' r='2' fill='%23D8B66B'/%3E%3Ccircle cx='60' cy='0' r='2' fill='%23D8B66B'/%3E%3Ccircle cx='0' cy='60' r='2' fill='%23D8B66B'/%3E%3Ccircle cx='60' cy='60' r='2' fill='%23D8B66B'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 60px 60px;
+}
+
+/* Subtle Festive Gold Dust & Saffron Ambient Glow */
+.diwali-festive-glow {
+  background-image: radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.12) 0%, rgba(216, 182, 107, 0.05) 45%, transparent 75%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

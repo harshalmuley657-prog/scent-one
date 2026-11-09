@@ -1,0 +1,145 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ==========================================
+    // PILLAR 1: DEFAULT DENY ALL
+    // ==========================================
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // ==========================================
+    // PILLAR 2: HELPER FUNCTIONS & RBAC
+    // ==========================================
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Check admin via custom claims or admin directory
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.admin == true ||
+        request.auth.token.role == 'owner' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isOwner(customerId) {
+      return isSignedIn() && request.auth.uid == customerId;
+    }
+
+    function isNonEmptyString(val, maxLen) {
+      return val is string && val.size() > 0 && val.size() <= maxLen;
+    }
+
+    function isValidPrice(val) {
+      return val is number && val >= 0 && val <= 50000;
+    }
+
+    function isValidQuantity(val) {
+      return val is int && val >= 1 && val <= 10;
+    }
+
+    // ==========================================
+    // PILLAR 5 & 6: PRODUCTS COLLECTION
+    // Public can read active items; only Admin can mutate
+    // ==========================================
+    match /products/{productId} {
+      // Public can read active items; admins can view all (draft/inactive)
+      allow read: if resource.data.isActive == true || isAdmin();
+
+      // Only verified admins can create products with strict validation
+      allow create: if isAdmin()
+        && isNonEmptyString(request.resource.data.name, 100)
+        && isNonEmptyString(request.resource.data.slug, 50)
+        && isValidPrice(request.resource.data.price)
+        && request.resource.data.stock is int && request.resource.data.stock >= 0
+        && request.resource.data.category in ['Men', 'Women', 'Unisex']
+        && request.resource.data.isActive is bool;
+
+      // Only verified admins can update products
+      allow update: if isAdmin()
+        && isNonEmptyString(request.resource.data.name, 100)
+        && isValidPrice(request.resource.data.price)
+        && request.resource.data.stock is int && request.resource.data.stock >= 0;
+
+      // Only verified admins can delete products
+      allow delete: if isAdmin();
+    }
+
+    // ==========================================
+    // PILLAR 6 & 7: ORDERS COLLECTION
+    // Customer Privacy + Tamper-Proof Pricing + Terminal State Locking
+    // ==========================================
+    match /orders/{orderId} {
+      // Customers can only view their own order; Admins can view all orders
+      allow read: if isAdmin() || (
+        isSignedIn() && resource.data.customerId == request.auth.uid
+      );
+
+      // Order creation validation
+      allow create: if 
+        // 1. Required customer information fields
+        request.resource.data.customer is map
+        && isNonEmptyString(request.resource.data.customer.fullName, 100)
+        && request.resource.data.customer.mobile is string
+        && request.resource.data.customer.mobile.size() == 10
+        && isNonEmptyString(request.resource.data.customer.address, 300)
+        && isNonEmptyString(request.resource.data.customer.city, 80)
+        && isNonEmptyString(request.resource.data.customer.state, 80)
+        && request.resource.data.customer.pincode is string
+        && request.resource.data.customer.pincode.size() == 6
+        // 2. Financial integrity
+        && request.resource.data.subtotal is number && request.resource.data.subtotal >= 0
+        && request.resource.data.deliveryCharges is number && request.resource.data.deliveryCharges >= 0
+        && request.resource.data.total is number 
+        && request.resource.data.total == (request.resource.data.subtotal + request.resource.data.deliveryCharges)
+        // 3. New order status must be Pending
+        && request.resource.data.status == 'Pending'
+        && request.resource.data.items is list
+        && request.resource.data.items.size() > 0
+        && request.resource.data.items.size() <= 20;
+
+      // Only admins can update status; CANNOT mutate locked terminal orders ('Delivered' or 'Cancelled')
+      allow update: if isAdmin()
+        && !(resource.data.status in ['Delivered', 'Cancelled'])
+        && request.resource.data.status in ['Pending', 'Confirmed', 'Dispatched', 'Delivered', 'Cancelled']
+        // Prevent modifying order financial totals once created
+        && request.resource.data.total == resource.data.total
+        && request.resource.data.subtotal == resource.data.subtotal
+        && request.resource.data.items == resource.data.items;
+
+      // Orders cannot be deleted to preserve financial audit trail
+      allow delete: if false;
+    }
+
+    // ==========================================
+    // STORE SETTINGS
+    // Public read; Admin-only write
+    // ==========================================
+    match /storeSettings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ==========================================
+    // ADMIN DIRECTORY
+    // Verified admin read; writes locked to secure backend/admin SDK
+    // ==========================================
+    match /admins/{adminUid} {
+      allow read: if isSignedIn() && (request.auth.uid == adminUid || isAdmin());
+      allow write: if false; // Role elevation must use Firebase Admin SDK
+    }
+
+    // ==========================================
+    // REVIEWS
+    // Public read; Admin moderation
+    // ==========================================
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isSignedIn() || isAdmin();
+      allow update, delete: if isAdmin();
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "SCENT ONE — Premium Solid Perfume",
+  "description": "Luxury pocket solid perfumes crafted for modern impressions. Small Tin. Big Impressions. Discover Midnight Aura, Fresh Drift, Aero Flex, and Love Vibe.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
